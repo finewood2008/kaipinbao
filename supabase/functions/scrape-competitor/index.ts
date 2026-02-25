@@ -51,6 +51,13 @@ serve(async (req) => {
 
     const { productId, url } = await req.json();
 
+    if (!productId || !url) {
+      return new Response(
+        JSON.stringify({ success: false, error: "productId and url are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Create service role client for database operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -85,13 +92,6 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: "Forbidden: You don't have access to this project" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!productId || !url) {
-      return new Response(
-        JSON.stringify({ success: false, error: "productId and url are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

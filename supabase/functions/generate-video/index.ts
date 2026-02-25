@@ -235,18 +235,50 @@ CRITICAL REQUIREMENTS:
         console.log("Generated video URI:", videoUrl);
 
         if (videoUrl) {
-          // Append API key if needed for access
-          if (!videoUrl.includes("key=")) {
-            const separator = videoUrl.includes("?") ? "&" : "?";
-            videoUrl = `${videoUrl}${separator}key=${GOOGLE_API_KEY}`;
+          // Download video from Google and upload to Supabase Storage to avoid exposing API key
+          const videoFetchUrl = videoUrl.includes("key=")
+            ? videoUrl
+            : `${videoUrl}${videoUrl.includes("?") ? "&" : "?"}key=${GOOGLE_API_KEY}`;
+
+          let storageUrl: string | null = null;
+          try {
+            const videoResponse = await fetch(videoFetchUrl);
+            if (videoResponse.ok) {
+              const videoBuffer = await videoResponse.arrayBuffer();
+              const videoBytes = new Uint8Array(videoBuffer);
+              const fileName = `generated-videos/${videoRecord.id}-${Date.now()}.mp4`;
+
+              const { data: uploadData, error: uploadError } = await supabase.storage
+                .from("generated-videos")
+                .upload(fileName, videoBytes, {
+                  contentType: "video/mp4",
+                  upsert: true,
+                });
+
+              if (!uploadError && uploadData) {
+                const { data: { publicUrl } } = supabase.storage
+                  .from("generated-videos")
+                  .getPublicUrl(fileName);
+                storageUrl = publicUrl;
+                console.log("Video uploaded to storage:", storageUrl);
+              } else {
+                console.error("Storage upload error:", uploadError);
+              }
+            } else {
+              console.error("Failed to download video:", videoResponse.status);
+            }
+          } catch (uploadErr) {
+            console.error("Error uploading video to storage:", uploadErr);
           }
+
+          const finalVideoUrl = storageUrl || null;
 
           // Update video record with completed status and URL
           await supabase
             .from("generated_videos")
             .update({ 
               status: "completed",
-              video_url: videoUrl,
+              video_url: finalVideoUrl,
             })
             .eq("id", videoRecord.id);
 
@@ -259,7 +291,7 @@ CRITICAL REQUIREMENTS:
               video: {
                 ...videoRecord,
                 status: "completed",
-                video_url: videoUrl,
+                video_url: finalVideoUrl,
               },
               message: "Video generation completed successfully.",
             }),
