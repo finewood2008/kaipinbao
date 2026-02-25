@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,12 +51,7 @@ export function MarketResearchPhase({
   const [showTransition, setShowTransition] = useState(false);
   const [competitorProducts, setCompetitorProducts] = useState<CompetitorProduct[]>([]);
 
-  useEffect(() => {
-    loadProjectData();
-    loadCompetitorProducts();
-  }, [projectId]);
-
-  const loadProjectData = async () => {
+  const loadProjectData = useCallback(async () => {
     const { data } = await supabase
       .from("projects")
       .select("prd_data, competitor_research_completed")
@@ -72,9 +67,9 @@ export function MarketResearchPhase({
     if (data?.competitor_research_completed) {
       setPhase2Completed(true);
     }
-  };
+  }, [projectId]);
 
-  const loadCompetitorProducts = async () => {
+  const loadCompetitorProducts = useCallback(async () => {
     const { data } = await supabase
       .from("competitor_products")
       .select("*")
@@ -93,7 +88,12 @@ export function MarketResearchPhase({
         }))
       );
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    loadProjectData();
+    loadCompetitorProducts();
+  }, [loadProjectData, loadCompetitorProducts]);
 
   const handleMarketAnalysisComplete = () => {
     setPhase1Completed(true);

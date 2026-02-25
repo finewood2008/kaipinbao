@@ -49,6 +49,25 @@ export function ImageLightbox({
     setPosition({ x: 0, y: 0 });
   }, [currentIndex]);
 
+  const handleZoomIn = () => setZoom((z) => Math.min(z + 0.5, 3));
+  const handleZoomOut = () => {
+    setZoom((z) => {
+      const newZoom = Math.max(z - 0.5, 1);
+      if (newZoom === 1) setPosition({ x: 0, y: 0 });
+      return newZoom;
+    });
+  };
+
+  const handleSelect = useCallback(() => {
+    if (!currentImage || !onSelect) return;
+    onSelect(currentImage.id);
+    setShowConfirmation(true);
+    setTimeout(() => {
+      setShowConfirmation(false);
+      onClose();
+    }, 1500);
+  }, [currentImage, onSelect, onClose]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -72,26 +91,7 @@ export function ImageLightbox({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentIndex, images.length, onClose, onNavigate]);
-
-  const handleZoomIn = () => setZoom((z) => Math.min(z + 0.5, 3));
-  const handleZoomOut = () => {
-    setZoom((z) => {
-      const newZoom = Math.max(z - 0.5, 1);
-      if (newZoom === 1) setPosition({ x: 0, y: 0 });
-      return newZoom;
-    });
-  };
-
-  const handleSelect = useCallback(() => {
-    if (!currentImage || !onSelect) return;
-    onSelect(currentImage.id);
-    setShowConfirmation(true);
-    setTimeout(() => {
-      setShowConfirmation(false);
-      onClose();
-    }, 1500);
-  }, [currentImage, onSelect, onClose]);
+  }, [isOpen, currentIndex, images.length, onClose, onNavigate, handleSelect]);
 
   const handleDownload = () => {
     if (!currentImage) return;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrendingUp, Loader2, ArrowRight, SkipForward, Sparkles, Target, Users, DollarSign, Lightbulb, BarChart3, PieChart, Rocket, CheckCircle2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -73,11 +73,7 @@ export function MarketAnalysisPhase({ projectId, onComplete, onSkip }: MarketAna
   const [analysis, setAnalysis] = useState<InitialMarketAnalysis | null>(null);
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    loadProjectData();
-  }, [projectId]);
-
-  const loadProjectData = async () => {
+  const loadProjectData = useCallback(async () => {
     const { data } = await supabase
       .from("projects")
       .select("name, description, prd_data")
@@ -93,7 +89,11 @@ export function MarketAnalysisPhase({ projectId, onComplete, onSkip }: MarketAna
         setAnalysis(prdData.initialMarketAnalysis as InitialMarketAnalysis);
       }
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    loadProjectData();
+  }, [loadProjectData]);
 
   const handleStartAnalysis = async () => {
     setIsAnalyzing(true);

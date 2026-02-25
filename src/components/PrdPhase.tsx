@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,24 +76,7 @@ export function PrdPhase({
     return token;
   };
 
-  // Load initial data
-  useEffect(() => {
-    loadProjectData();
-    loadMessages();
-    loadCompetitorProducts();
-  }, [projectId]);
-
-  // Start AI conversation on mount if no messages exist
-  useEffect(() => {
-    if (messages.length === 0 && !isReadOnly) {
-      const timer = setTimeout(() => {
-        startAiConversation();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [messages.length, isReadOnly]);
-
-  const loadProjectData = async () => {
+  const loadProjectData = useCallback(async () => {
     const { data } = await supabase
       .from("projects")
       .select("prd_data, name")
@@ -106,9 +89,9 @@ export function PrdPhase({
         setPrdData(data.prd_data as PrdData);
       }
     }
-  };
+  }, [projectId]);
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     const { data } = await supabase
       .from("chat_messages")
       .select("*")
@@ -125,9 +108,9 @@ export function PrdPhase({
         }))
       );
     }
-  };
+  }, [projectId]);
 
-  const loadCompetitorProducts = async () => {
+  const loadCompetitorProducts = useCallback(async () => {
     const { data } = await supabase
       .from("competitor_products")
       .select("*")
@@ -146,7 +129,25 @@ export function PrdPhase({
         }))
       );
     }
-  };
+  }, [projectId]);
+
+  // Load initial data
+  useEffect(() => {
+    loadProjectData();
+    loadMessages();
+    loadCompetitorProducts();
+  }, [loadProjectData, loadMessages, loadCompetitorProducts]);
+
+  // Start AI conversation on mount if no messages exist
+  useEffect(() => {
+    if (messages.length === 0 && !isReadOnly) {
+      const timer = setTimeout(() => {
+        startAiConversation();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length, isReadOnly]);
 
   // Start AI conversation
   const startAiConversation = async () => {
@@ -178,7 +179,7 @@ export function PrdPhase({
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
-      let assistantMsgId = crypto.randomUUID();
+      const assistantMsgId = crypto.randomUUID();
 
       setMessages([{ id: assistantMsgId, role: "assistant", content: "", stage: 1 }]);
 
@@ -353,7 +354,7 @@ export function PrdPhase({
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
-      let assistantMsgId = crypto.randomUUID();
+      const assistantMsgId = crypto.randomUUID();
 
       setMessages((prev) => [
         ...prev,
@@ -467,7 +468,7 @@ export function PrdPhase({
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
-      let assistantMsgId = crypto.randomUUID();
+      const assistantMsgId = crypto.randomUUID();
 
       setMessages((prev) => [
         ...prev,

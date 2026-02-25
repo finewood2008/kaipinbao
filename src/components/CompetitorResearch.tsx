@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Plus, Loader2, ArrowRight, SkipForward, Link, BarChart3, Package, Star, ExternalLink, Trash2, RotateCcw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,11 +40,26 @@ export function CompetitorResearch({ projectId, onComplete, onSkip }: Competitor
   const [analysis, setAnalysis] = useState<ReviewAnalysis | null>(null);
   const [scrapeProgress, setScrapeProgress] = useState(0);
 
-  useEffect(() => {
-    loadProducts();
+  const generateAnalysis = useCallback(async () => {
+    setIsAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-reviews", {
+        body: { projectId },
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.analysis) {
+        setAnalysis(data.analysis);
+      }
+    } catch (error) {
+      console.error("Analysis failed:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
   }, [projectId]);
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     const { data, error } = await supabase
       .from("competitor_products")
       .select("*")
@@ -73,7 +88,11 @@ export function CompetitorResearch({ projectId, onComplete, onSkip }: Competitor
     if (completedProducts.length > 0) {
       await generateAnalysis();
     }
-  };
+  }, [projectId, generateAnalysis]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const handleAddUrl = async () => {
     if (!urlInput.trim()) return;
@@ -189,25 +208,6 @@ export function CompetitorResearch({ projectId, onComplete, onSkip }: Competitor
     const product = products.find(p => p.id === id);
     if (product) {
       scrapeProduct(id, product.url);
-    }
-  };
-
-  const generateAnalysis = async () => {
-    setIsAnalyzing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("analyze-reviews", {
-        body: { projectId },
-      });
-
-      if (error) throw error;
-
-      if (data.success && data.analysis) {
-        setAnalysis(data.analysis);
-      }
-    } catch (error) {
-      console.error("Analysis failed:", error);
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 

@@ -111,6 +111,7 @@ export default function ProjectPage() {
       fetchLandingPage();
       fetchCompetitorProductsData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -134,6 +135,7 @@ export default function ProjectPage() {
         setActiveTab("analytics");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.current_stage]);
 
   const fetchProject = async () => {

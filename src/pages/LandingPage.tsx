@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -76,11 +76,7 @@ export default function LandingPage() {
   const [error, setError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    fetchLandingPage();
-  }, [slug]);
-
-  const fetchLandingPage = async () => {
+  const fetchLandingPage = useCallback(async () => {
     if (!slug) return;
 
     const { data, error } = await supabase
@@ -101,7 +97,11 @@ export default function LandingPage() {
         .eq("id", data.id);
     }
     setIsLoading(false);
-  };
+  }, [slug]);
+
+  useEffect(() => {
+    fetchLandingPage();
+  }, [fetchLandingPage]);
 
   const handleSubmitEmail = async (e: React.FormEvent) => {
     e.preventDefault();
