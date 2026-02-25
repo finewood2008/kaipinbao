@@ -151,7 +151,7 @@ export function PrdDocumentPanel({
           return;
         }
       } else {
-        (updatedData as any)[editingSection] = editingValue;
+        (updatedData as Record<string, unknown>)[editingSection] = editingValue;
       }
 
       setLocalPrdData(updatedData);
@@ -192,7 +192,7 @@ export function PrdDocumentPanel({
         } else if (section === "videoAssets") {
           updatedData.videoAssets = data.regeneratedContent;
         } else {
-          (updatedData as any)[section] = data.regeneratedContent;
+          (updatedData as Record<string, unknown>)[section] = data.regeneratedContent;
         }
 
         setLocalPrdData(updatedData);

@@ -305,7 +305,7 @@ export function PrdReviewPanel({
           return;
         }
       } else {
-        (updatedData as any)[editingSection] = editingValue;
+        (updatedData as Record<string, unknown>)[editingSection] = editingValue;
       }
       
       setLocalPrdData(updatedData);
@@ -357,7 +357,7 @@ export function PrdReviewPanel({
           updatedData.designStyle = data.regeneratedContent.designStyle;
           updatedData.cmfDesign = data.regeneratedContent.cmfDesign;
         } else {
-          (updatedData as any)[section] = data.regeneratedContent;
+          (updatedData as Record<string, unknown>)[section] = data.regeneratedContent;
         }
         
         setLocalPrdData(updatedData);

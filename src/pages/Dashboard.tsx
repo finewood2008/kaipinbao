@@ -60,6 +60,36 @@ interface Project {
   prd_data: PrdData | null;
 }
 
+interface LandingPageRow {
+  id: string;
+  project_id: string;
+  slug: string;
+  is_published: boolean;
+  hero_image_url: string | null;
+  screenshot_url: string | null;
+  view_count: number;
+  is_active: boolean;
+}
+
+interface ImageRow {
+  project_id: string;
+  image_url: string;
+  image_type: string;
+  is_selected: boolean;
+  created_at: string;
+}
+
+interface ProjectRow {
+  id: string;
+  name: string;
+  description: string | null;
+  current_stage: number;
+  status: string;
+  created_at: string;
+  cover_image_url: string | null;
+  prd_data: unknown;
+}
+
 type StageFilter = "all" | 1 | 2 | 3 | 4;
 type StatusFilter = "all" | "active" | "completed" | "archived";
 
@@ -103,7 +133,7 @@ export default function Dashboard() {
     const projectIds = (projectsData || []).map((p) => p.id);
 
     // Fetch active landing page per project
-    let landingPagesData: any[] = [];
+    let landingPagesData: LandingPageRow[] = [];
     if (projectIds.length > 0) {
       const { data, error: landingPagesError } = await supabase
         .from("landing_pages")
@@ -117,15 +147,15 @@ export default function Dashboard() {
       landingPagesData = data || [];
     }
 
-    const activeLandingPageByProjectId = new Map<string, any>();
-    landingPagesData.forEach((lp: any) => {
+    const activeLandingPageByProjectId = new Map<string, LandingPageRow>();
+    landingPagesData.forEach((lp: LandingPageRow) => {
       if (!activeLandingPageByProjectId.has(lp.project_id)) {
         activeLandingPageByProjectId.set(lp.project_id, lp);
       }
     });
 
     // Fetch product images for all projects
-    let imagesData: any[] = [];
+    let imagesData: ImageRow[] = [];
     if (projectIds.length > 0) {
       const { data, error: imagesError } = await supabase
         .from("generated_images")
@@ -138,15 +168,15 @@ export default function Dashboard() {
       imagesData = data || [];
     }
 
-    const imagesByProjectId = new Map<string, any[]>();
-    imagesData.forEach((img: any) => {
+    const imagesByProjectId = new Map<string, ImageRow[]>();
+    imagesData.forEach((img: ImageRow) => {
       const arr = imagesByProjectId.get(img.project_id) || [];
       arr.push(img);
       imagesByProjectId.set(img.project_id, arr);
     });
 
     // Fetch email counts for all active landing pages
-    const landingPageIds = landingPagesData.map((lp: any) => lp.id);
+    const landingPageIds = landingPagesData.map((lp: LandingPageRow) => lp.id);
     let emailCounts: Record<string, number> = {};
     if (landingPageIds.length > 0) {
       const { data: emailData, error: emailError } = await supabase
@@ -164,14 +194,14 @@ export default function Dashboard() {
       }
     }
 
-    return (projectsData || []).map((p: any) => {
+    return (projectsData || []).map((p: ProjectRow) => {
       const allImages = imagesByProjectId.get(p.id) || [];
       const selectedImages = allImages
-        .filter((img: any) => img.is_selected)
-        .map((img: any) => img.image_url);
+        .filter((img: ImageRow) => img.is_selected)
+        .map((img: ImageRow) => img.image_url);
       const otherImages = allImages
-        .filter((img: any) => !img.is_selected)
-        .map((img: any) => img.image_url);
+        .filter((img: ImageRow) => !img.is_selected)
+        .map((img: ImageRow) => img.image_url);
       const productImages = [...selectedImages, ...otherImages].slice(0, 4);
 
       const activeLandingPage = activeLandingPageByProjectId.get(p.id) || null;
