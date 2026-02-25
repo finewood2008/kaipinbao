@@ -259,7 +259,7 @@ export function PrdReviewPanel({
     
     setIsSaving(true);
     try {
-      let updatedData = { ...localPrdData };
+      const updatedData = { ...localPrdData };
       
       if (editingSection === "coreFeatures") {
         updatedData.coreFeatures = editingListValue.filter(v => v.trim());
@@ -426,7 +426,7 @@ export function PrdReviewPanel({
           </p>
         );
 
-      case "designStyle":
+      case "designStyle": {
         const cmf = localPrdData.cmfDesign;
         return (
           <div className="space-y-3 text-sm">
@@ -480,8 +480,9 @@ export function PrdReviewPanel({
             )}
           </div>
         );
+      }
 
-      case "coreFeatures":
+      case "coreFeatures": {
         const features = localPrdData.coreFeatures || [];
         const featureMatrix = localPrdData.featureMatrix || [];
         
@@ -524,8 +525,9 @@ export function PrdReviewPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">未定义</p>
         );
+      }
 
-      case "specifications":
+      case "specifications": {
         const specs = localPrdData.specifications;
         return specs ? (
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -569,8 +571,9 @@ export function PrdReviewPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">AI 将自动生成</p>
         );
+      }
 
-      case "marketPositioning":
+      case "marketPositioning": {
         const mp = localPrdData.marketPositioning;
         return mp ? (
           <div className="space-y-3 text-sm">
@@ -609,8 +612,9 @@ export function PrdReviewPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">AI 将自动生成</p>
         );
+      }
 
-      case "packaging":
+      case "packaging": {
         const pkg = localPrdData.packaging;
         return pkg ? (
           <div className="space-y-2 text-sm">
@@ -642,8 +646,9 @@ export function PrdReviewPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">AI 将自动生成</p>
         );
+      }
 
-      case "marketingAssets":
+      case "marketingAssets": {
         const marketing = localPrdData.marketingAssets;
         return marketing ? (
           <div className="space-y-3 text-sm">
@@ -669,8 +674,9 @@ export function PrdReviewPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">AI 将自动生成</p>
         );
+      }
 
-      case "videoAssets":
+      case "videoAssets": {
         const video = localPrdData.videoAssets;
         return video ? (
           <div className="space-y-3 text-sm">
@@ -696,6 +702,7 @@ export function PrdReviewPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">AI 将自动生成</p>
         );
+      }
 
       default:
         return null;

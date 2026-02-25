@@ -236,9 +236,10 @@ function getDisplayValue(prdData: PrdData | null, key: string): string | null {
       return prdData.coreFeatures?.slice(0, 3).join("、") || null;
     case "selectedDirection":
       return prdData.selectedDirection || null;
-    default:
+    default: {
       const value = prdData[key as keyof PrdData];
       return safeStringify(value) || null;
+    }
   }
 }
 
