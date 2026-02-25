@@ -9,6 +9,7 @@ const corsHeaders = {
 
 // Helper function to verify project ownership
 async function verifyProjectOwnership(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   projectId: string,
   userId: string
@@ -230,7 +231,7 @@ CRITICAL REQUIREMENTS:
 
       if (operation.done && operation.response?.generatedVideos?.[0]) {
         const video = operation.response.generatedVideos[0];
-        let videoUrl = video.video?.uri;
+        const videoUrl = video.video?.uri;
 
         console.log("Generated video URI:", videoUrl);
 

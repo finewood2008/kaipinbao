@@ -8,6 +8,7 @@ const corsHeaders = {
 
 // Helper function to verify project ownership
 async function verifyProjectOwnership(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   projectId: string,
   userId: string

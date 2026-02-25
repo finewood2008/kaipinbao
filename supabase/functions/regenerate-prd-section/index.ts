@@ -8,6 +8,7 @@ const corsHeaders = {
 
 // Helper function to verify project ownership
 async function verifyProjectOwnership(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   projectId: string,
   userId: string
@@ -273,7 +274,7 @@ ${currentPrdData?.pricingRange ? `- 定价区间: ${currentPrdData.pricingRange}
 
     if (competitors && competitors.length > 0) {
       context += `\n竞品分析:
-${competitors.map((c: any) => `- ${c.product_title} (${c.price || "价格未知"}, ${c.rating || 0}★)`).join("\n")}`;
+${competitors.map((c: { product_title: string; price: string | null; rating: number | null }) => `- ${c.product_title} (${c.price || "价格未知"}, ${c.rating || 0}★)`).join("\n")}`;
     }
 
     const sectionPrompt = sectionPrompts[section];
@@ -303,6 +304,7 @@ ${competitors.map((c: any) => `- ${c.product_title} (${c.price || "价格未知"
     }
 
     // Parse the generated content based on section type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let regeneratedContent: any;
 
     if (section === "coreFeatures") {
@@ -373,6 +375,7 @@ ${competitors.map((c: any) => `- ${c.product_title} (${c.price || "价格未知"
       updatedPrdData.productCategory = regeneratedContent.productCategory;
       updatedPrdData.pricingRange = regeneratedContent.pricingRange;
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (updatedPrdData as any)[section] = regeneratedContent;
     }
 

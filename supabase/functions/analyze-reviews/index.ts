@@ -289,10 +289,10 @@ serve(async (req) => {
 
     // Update reviews with sentiment
     for (const review of reviews) {
-      const isPositive = analysis.positivePoints.some((p: any) =>
+      const isPositive = analysis.positivePoints.some((p: { point: string }) =>
         review.review_text.includes(p.point)
       );
-      const isNegative = analysis.negativePoints.some((p: any) =>
+      const isNegative = analysis.negativePoints.some((p: { point: string }) =>
         review.review_text.includes(p.point)
       );
 

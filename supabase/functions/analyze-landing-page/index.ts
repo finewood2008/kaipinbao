@@ -56,12 +56,12 @@ Deno.serve(async (req) => {
     let viewGrowth = 0;
     let emailGrowth = 0;
     if (dailyStats && dailyStats.length >= 2) {
-      const recentViews = dailyStats.slice(-3).reduce((sum: number, d: any) => sum + d.views, 0);
-      const earlierViews = dailyStats.slice(0, 3).reduce((sum: number, d: any) => sum + d.views, 0);
+      const recentViews = dailyStats.slice(-3).reduce((sum: number, d: { views: number; emails: number }) => sum + d.views, 0);
+      const earlierViews = dailyStats.slice(0, 3).reduce((sum: number, d: { views: number; emails: number }) => sum + d.views, 0);
       viewGrowth = earlierViews > 0 ? ((recentViews - earlierViews) / earlierViews) * 100 : 0;
 
-      const recentEmails = dailyStats.slice(-3).reduce((sum: number, d: any) => sum + d.emails, 0);
-      const earlierEmails = dailyStats.slice(0, 3).reduce((sum: number, d: any) => sum + d.emails, 0);
+      const recentEmails = dailyStats.slice(-3).reduce((sum: number, d: { views: number; emails: number }) => sum + d.emails, 0);
+      const earlierEmails = dailyStats.slice(0, 3).reduce((sum: number, d: { views: number; emails: number }) => sum + d.emails, 0);
       emailGrowth = earlierEmails > 0 ? ((recentEmails - earlierEmails) / earlierEmails) * 100 : 0;
     }
 
