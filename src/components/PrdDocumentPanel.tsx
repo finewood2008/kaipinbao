@@ -130,7 +130,7 @@ export function PrdDocumentPanel({
 
     setIsSaving(true);
     try {
-      let updatedData = { ...localPrdData };
+      const updatedData = { ...localPrdData };
 
       if (editingSection === "coreFeatures") {
         updatedData.coreFeatures = editingListValue.filter((v) => v.trim());
@@ -151,7 +151,7 @@ export function PrdDocumentPanel({
           return;
         }
       } else {
-        (updatedData as any)[editingSection] = editingValue;
+        (updatedData as Record<string, unknown>)[editingSection] = editingValue;
       }
 
       setLocalPrdData(updatedData);
@@ -192,7 +192,7 @@ export function PrdDocumentPanel({
         } else if (section === "videoAssets") {
           updatedData.videoAssets = data.regeneratedContent;
         } else {
-          (updatedData as any)[section] = data.regeneratedContent;
+          (updatedData as Record<string, unknown>)[section] = data.regeneratedContent;
         }
 
         setLocalPrdData(updatedData);
@@ -238,7 +238,7 @@ export function PrdDocumentPanel({
           </p>
         );
 
-      case "coreFeatures":
+      case "coreFeatures": {
         const features = localPrdData.coreFeatures || [];
         return features.length > 0 ? (
           <ul className="space-y-2">
@@ -252,8 +252,9 @@ export function PrdDocumentPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">未定义</p>
         );
+      }
 
-      case "marketingAssets":
+      case "marketingAssets": {
         const marketing = localPrdData.marketingAssets;
         return marketing ? (
           <div className="space-y-3 text-sm">
@@ -285,8 +286,9 @@ export function PrdDocumentPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">AI 将自动生成</p>
         );
+      }
 
-      case "videoAssets":
+      case "videoAssets": {
         const video = localPrdData.videoAssets;
         return video ? (
           <div className="space-y-3 text-sm">
@@ -314,6 +316,7 @@ export function PrdDocumentPanel({
         ) : (
           <p className="text-sm text-muted-foreground italic">AI 将自动生成</p>
         );
+      }
 
       default:
         return null;

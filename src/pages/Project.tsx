@@ -62,6 +62,15 @@ interface LandingPageData {
   is_active?: boolean;
 }
 
+interface CompetitorProductData {
+  id: string;
+  product_title?: string;
+  product_images?: string[];
+  main_image?: string;
+  price?: string;
+  rating?: number;
+}
+
 interface Project {
   id: string;
   name: string;
@@ -90,7 +99,7 @@ export default function ProjectPage() {
   const [activeTab, setActiveTab] = useState("research");
   const [showTransitionPrompt, setShowTransitionPrompt] = useState(false);
   const [prdData, setPrdData] = useState<PrdData | null>(null);
-  const [competitorProducts, setCompetitorProducts] = useState<any[]>([]);
+  const [competitorProducts, setCompetitorProducts] = useState<CompetitorProductData[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -102,6 +111,7 @@ export default function ProjectPage() {
       fetchLandingPage();
       fetchCompetitorProductsData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -125,6 +135,7 @@ export default function ProjectPage() {
         setActiveTab("analytics");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.current_stage]);
 
   const fetchProject = async () => {
@@ -187,8 +198,8 @@ export default function ProjectPage() {
       .order("created_at", { ascending: true });
 
     if (!error && data) {
-      const phase1Images = data.filter((img: any) => (img.phase || 1) === 1);
-      const phase2Images = data.filter((img: any) => img.phase === 2);
+      const phase1Images = data.filter((img) => ((img.phase as number | null) || 1) === 1);
+      const phase2Images = data.filter((img) => (img.phase as number | null) === 2);
       setProductImages(phase1Images as GeneratedImage[]);
       setMarketingImages(phase2Images as GeneratedImage[]);
     }
@@ -290,7 +301,7 @@ export default function ProjectPage() {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
-      let assistantMsgId = crypto.randomUUID();
+      const assistantMsgId = crypto.randomUUID();
 
       setMessages((prev) => [
         ...prev,
@@ -459,7 +470,7 @@ export default function ProjectPage() {
       .eq("status", "completed");
 
     if (data) {
-      setCompetitorProducts(data.map((p: any) => ({
+      setCompetitorProducts(data.map((p) => ({
         id: p.id,
         product_title: p.product_title || undefined,
         product_images: (p.product_images as string[]) || undefined,
@@ -485,7 +496,7 @@ export default function ProjectPage() {
   };
 
   const getPrdData = () => {
-    const data = project?.prd_data as any;
+    const data = project?.prd_data as PrdData | null;
     return {
       usageScenarios: data?.usageScenarios || data?.marketingAssets?.usageScenarios || [],
       targetAudience: data?.targetAudience || "",

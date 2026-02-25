@@ -133,6 +133,7 @@ export function VisualGenerationPhase({
         hasInitializedRef.current = true;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productImages]); // 移除 currentPhase 依赖，避免循环
 
   // 当 marketingImages 变化时，如果有数据且有选中产品，确保在 phase 2

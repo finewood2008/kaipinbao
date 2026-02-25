@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -107,14 +107,7 @@ export function LandingPageAnalytics({
   // Colors for geo pie chart - using design tokens
   const GEO_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--stage-3))", "hsl(var(--stage-2))", "hsl(var(--muted-foreground))"];
 
-  useEffect(() => {
-    fetchEmailSubmissions();
-    generateDailyStats();
-    generateGeoData();
-    generateHourlyData();
-  }, [landingPageId]);
-
-  const fetchEmailSubmissions = async () => {
+  const fetchEmailSubmissions = useCallback(async () => {
     setIsLoadingEmails(true);
     const { data, error } = await supabase
       .from("email_submissions")
@@ -126,9 +119,9 @@ export function LandingPageAnalytics({
       setEmailSubmissions(data);
     }
     setIsLoadingEmails(false);
-  };
+  }, [landingPageId]);
 
-  const generateDailyStats = () => {
+  const generateDailyStats = useCallback(() => {
     const stats: DailyStats[] = [];
     const now = new Date();
     
@@ -148,9 +141,9 @@ export function LandingPageAnalytics({
     }
     
     setDailyStats(stats);
-  };
+  }, [viewCount]);
 
-  const generateGeoData = () => {
+  const generateGeoData = useCallback(() => {
     const countries = [
       { country: "美国", countryCode: "US" },
       { country: "英国", countryCode: "GB" },
@@ -177,9 +170,9 @@ export function LandingPageAnalytics({
     });
 
     setGeoData(data);
-  };
+  }, [viewCount]);
 
-  const generateHourlyData = () => {
+  const generateHourlyData = useCallback(() => {
     const hours: HourlyData[] = [];
     const baseViews = Math.max(1, Math.floor(viewCount / 24));
     
@@ -198,7 +191,14 @@ export function LandingPageAnalytics({
     }
 
     setHourlyData(hours);
-  };
+  }, [viewCount]);
+
+  useEffect(() => {
+    fetchEmailSubmissions();
+    generateDailyStats();
+    generateGeoData();
+    generateHourlyData();
+  }, [fetchEmailSubmissions, generateDailyStats, generateGeoData, generateHourlyData]);
 
   const conversionRate = viewCount > 0
     ? ((emailSubmissions.length / viewCount) * 100).toFixed(1)

@@ -285,10 +285,10 @@ function extractMainProductImage(markdown: string, url: string): string | null {
   
   if (lowerUrl.includes("amazon")) {
     const patterns = [
-      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._AC_SL1500_[^"'\s\)]*\.(jpg|png|webp)/gi,
-      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._SL1500_[^"'\s\)]*\.(jpg|png|webp)/gi,
-      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._AC_SL1200_[^"'\s\)]*\.(jpg|png|webp)/gi,
-      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+[^"'\s\)]*\.(jpg|png|webp)/gi,
+      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._AC_SL1500_[^"'\s)]*\.(jpg|png|webp)/gi,
+      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._SL1500_[^"'\s)]*\.(jpg|png|webp)/gi,
+      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._AC_SL1200_[^"'\s)]*\.(jpg|png|webp)/gi,
+      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+[^"'\s)]*\.(jpg|png|webp)/gi,
     ];
     
     for (const pattern of patterns) {
@@ -367,6 +367,7 @@ async function scrapeAmazonReviewsWithOCR(
   asin: string,
   firecrawlApiKey: string,
   lovableApiKey: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   productId: string
 ): Promise<{ reviews: Array<{ text: string; rating?: number; title?: string }>; screenshotUrl: string | null }> {
@@ -375,7 +376,7 @@ async function scrapeAmazonReviewsWithOCR(
     `https://www.amazon.com/product-reviews/${asin}/?sortBy=helpful&pageNumber=1`,
   ];
   
-  let allReviews: Array<{ text: string; rating?: number; title?: string }> = [];
+  const allReviews: Array<{ text: string; rating?: number; title?: string }> = [];
   let screenshotUrl: string | null = null;
 
   for (const reviewUrl of reviewUrls) {
@@ -791,9 +792,10 @@ function isUiLine(line: string): boolean {
   return patterns.some(p => p.test(line.trim()));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractProductInfo(markdown: string, metadata: any, url: string) {
   let title = metadata.title || "";
-  let description = metadata.description || "";
+  const description = metadata.description || "";
   let price = "";
   let rating = null;
   let reviewCount = null;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -202,14 +202,7 @@ export function LandingPageBuilder({
   const [allVersions, setAllVersions] = useState<LandingPageData[]>([]);
   const [isSwitchingVersion, setIsSwitchingVersion] = useState(false);
 
-  // Fetch all versions when component mounts or projectId changes
-  useEffect(() => {
-    if (projectId) {
-      fetchAllVersions();
-    }
-  }, [projectId]);
-
-  const fetchAllVersions = async () => {
+  const fetchAllVersions = useCallback(async () => {
     const { data, error } = await supabase
       .from("landing_pages")
       .select("*")
@@ -219,7 +212,14 @@ export function LandingPageBuilder({
     if (!error && data) {
       setAllVersions(data as unknown as LandingPageData[]);
     }
-  };
+  }, [projectId]);
+
+  // Fetch all versions when component mounts or projectId changes
+  useEffect(() => {
+    if (projectId) {
+      fetchAllVersions();
+    }
+  }, [projectId, fetchAllVersions]);
 
   const handleAIGenerateLandingPage = async () => {
     setIsGenerating(true);

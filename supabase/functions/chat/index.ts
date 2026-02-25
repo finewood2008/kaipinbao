@@ -8,6 +8,7 @@ const corsHeaders = {
 
 // Helper function to verify project ownership
 async function verifyProjectOwnership(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   projectId: string,
   userId: string
@@ -726,6 +727,7 @@ function mergePrdData(existing: Partial<PrdData> | null, newData: Partial<PrdDat
   
   for (const field of simpleFields) {
     if (newData[field] !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (merged as any)[field] = newData[field];
     }
   }
@@ -838,6 +840,7 @@ function calculatePrdProgressFromData(prdData: Partial<PrdData> | null): Record<
 }
 
 // Fetch competitor research data
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getCompetitorData(supabase: any, projectId: string) {
   try {
     // Get competitor products including images
@@ -852,7 +855,7 @@ async function getCompetitorData(supabase: any, projectId: string) {
     }
 
     // Get reviews for these products
-    const productIds = products.map((p: any) => p.id);
+    const productIds = products.map((p: { id: string }) => p.id);
     const { data: reviews, error: reviewsError } = await supabase
       .from("competitor_reviews")
       .select("*")
@@ -863,6 +866,7 @@ async function getCompetitorData(supabase: any, projectId: string) {
     }
 
     return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       products: products.map((p: any) => ({
         title: p.product_title || "Unknown Product",
         price: p.price,
@@ -882,10 +886,12 @@ async function getCompetitorData(supabase: any, projectId: string) {
 
 // Build dynamic system prompt with competitor insights and initial market analysis
 function buildDynamicSystemPrompt(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   competitorData: any, 
   projectName: string, 
   projectDescription: string | null, 
   existingPrdData: Partial<PrdData> | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialMarketAnalysis: any | null
 ): string {
   let prompt = BASE_SYSTEM_PROMPT;
@@ -938,7 +944,8 @@ ${existingPrdData.pricingRange ? `- **定价区间**: ${existingPrdData.pricingR
 ${projectDescription ? `**项目描述**：${projectDescription}` : ""}
 
 **已收录竞品**（共 ${competitorData.products.length} 款）：
-${competitorData.products.map((p: any, i: number) => `
+${// eslint-disable-next-line @typescript-eslint/no-explicit-any
+competitorData.products.map((p: any, i: number) => `
 ### 竞品 ${i + 1}：${p.title}
 - 价格：${p.price || "未知"}
 - 评分：${p.rating ? `⭐ ${p.rating}` : "未知"}
@@ -950,15 +957,19 @@ ${competitorData.products.map((p: any, i: number) => `
 
 **好评要点**：
 ${competitorData.reviews
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .filter((r: any) => r.is_positive)
   .slice(0, 5)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .map((r: any) => `- "${r.review_text?.slice(0, 100)}..." ${r.key_points ? `【关键点：${r.key_points.join(", ")}】` : ""}`)
   .join("\n") || "暂无好评数据"}
 
 **差评要点（重要痛点）**：
 ${competitorData.reviews
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .filter((r: any) => !r.is_positive)
   .slice(0, 8)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .map((r: any) => `- "${r.review_text?.slice(0, 100)}..." ${r.key_points ? `【痛点：${r.key_points.join(", ")}】` : ""}`)
   .join("\n") || "暂无差评数据"}
 

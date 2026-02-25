@@ -439,6 +439,7 @@ async function generateImageViaLovable(
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const content: any[] = [{ type: "text", text: prompt }];
   
   if (parentImageUrl) {
