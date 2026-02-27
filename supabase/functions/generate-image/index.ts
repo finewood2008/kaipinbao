@@ -344,90 +344,56 @@ async function fetchImageAsBase64(imageUrl: string): Promise<{ base64: string; m
   return { base64, mimeType: contentType };
 }
 
-// Generate image via Google Direct API (Primary)
-async function generateImageViaGoogle(
-  ai: GoogleGenAI,
+// Generate image via Lovable AI Gateway - Fallback using same Nano banana pro model
+async function generateImageViaGatewayFallback(
   prompt: string,
   parentImageUrl?: string
 ): Promise<{ imageUrl: string; description?: string }> {
-  let imageUrl: string | undefined;
-  let description: string | undefined;
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+  const content: any[] = [{ type: "text", text: prompt }];
+  
   if (parentImageUrl) {
-    // Use image editing mode
-    const { base64, mimeType } = await fetchImageAsBase64(parentImageUrl);
-    
-    const editPrompt = `基于这个产品图片生成新的营销场景图。
-
-${prompt}
-
-【最重要的要求】
-这是一个产品营销图生成任务。你必须：
-1. 保持产品外观100%不变 - 产品的形状、颜色、材质、设计细节必须与原图完全一致
-2. 只改变产品周围的场景和环境
-3. 产品必须清晰可见，是画面的焦点
-4. 不要对产品进行任何修改、变形或重新设计
-
-生成一张高质量的营销场景图。`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp-image-generation",
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: editPrompt },
-            {
-              inlineData: {
-                mimeType: mimeType,
-                data: base64,
-              },
-            },
-          ],
-        },
-      ],
-      config: {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
-      },
-    });
-
-    if (response.candidates?.[0]?.content?.parts) {
-      for (const part of response.candidates[0].content.parts) {
-        if (part.text) {
-          description = part.text;
-        }
-        if (part.inlineData) {
-          imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-        }
-      }
+    let imageData = parentImageUrl;
+    if (!parentImageUrl.startsWith("data:")) {
+      const { base64, mimeType } = await fetchImageAsBase64(parentImageUrl);
+      imageData = `data:${mimeType};base64,${base64}`;
     }
-  } else {
-    // Text-to-image mode
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp-image-generation",
-      contents: prompt,
-      config: {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
-      },
+    content.push({
+      type: "image_url",
+      image_url: { url: imageData }
     });
-
-    if (response.candidates?.[0]?.content?.parts) {
-      for (const part of response.candidates[0].content.parts) {
-        if (part.text) {
-          description = part.text;
-        }
-        if (part.inlineData) {
-          imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-        }
-      }
-    }
   }
 
-  if (!imageUrl) {
-    throw new Error("No image generated from Google API");
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-pro-image-preview",
+      messages: [{ role: "user", content }],
+      modalities: ["image", "text"],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Gateway fallback error:", response.status, errorText);
+    throw new Error(`Gateway fallback failed: ${response.status}`);
   }
 
-  return { imageUrl, description };
+  const data = await response.json();
+  const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  const description = data.choices?.[0]?.message?.content;
+  
+  if (!imageData) {
+    throw new Error("No image in gateway fallback response");
+  }
+
+  return { imageUrl: imageData, description };
 }
 
 // Generate image via Lovable AI Gateway - Uses Nano banana pro (google/gemini-3-pro-image-preview)
@@ -528,25 +494,24 @@ serve(async (req) => {
     let imageResult: { imageUrl: string; description?: string };
     let usedFallback = false;
 
-    // Primary: Lovable AI Gateway with Nano banana pro (google/gemini-3-pro-image-preview)
+    // Primary: Lovable AI Gateway with Nano banana 2 (google/gemini-3-pro-image-preview)
     try {
-      console.log("GenerateImage: Attempting Lovable AI (Nano banana pro)...");
+      console.log("GenerateImage: Attempting Lovable AI (Nano banana 2 / gemini-3-pro-image-preview)...");
       imageResult = await generateImageViaLovable(
         enhancedPrompt,
         useImageEditing ? parentImageUrl : undefined
       );
       console.log("GenerateImage: Lovable AI succeeded");
     } catch (lovableError) {
-      console.warn("GenerateImage: Lovable AI failed, switching to Google Direct API...", lovableError);
+      console.warn("GenerateImage: Lovable AI failed, trying gateway fallback...", lovableError);
       usedFallback = true;
       
-      // Fallback: Google Direct API
-      imageResult = await generateImageViaGoogle(
-        ai,
+      // Fallback: Gateway with same model
+      imageResult = await generateImageViaGatewayFallback(
         enhancedPrompt,
         useImageEditing ? parentImageUrl : undefined
       );
-      console.log("GenerateImage: Google Direct API fallback succeeded");
+      console.log("GenerateImage: Gateway fallback succeeded");
     }
 
     // Generate marketing copy for phase 2 images
