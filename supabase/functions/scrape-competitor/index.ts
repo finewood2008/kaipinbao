@@ -279,23 +279,67 @@ function extractAsin(url: string): string | null {
   return null;
 }
 
-// Extract only the main product image (first large image)
+// Upgrade Amazon image URL to highest resolution version
+function upgradeAmazonImageToHD(imageUrl: string): string {
+  // Amazon image URLs contain sizing tokens like _AC_SL1500_, _SX300_, _SS100_, etc.
+  // Replace any sizing token with _AC_SL2560_ for the highest available resolution
+  // Common patterns: _AC_SLxxxx_, _SXxxx_, _SYxxx_, _SSxxx_, _AC_ULxxx_, _AC_USxxx_
+  let hdUrl = imageUrl;
+  
+  // Remove all existing sizing/quality tokens and replace with max resolution
+  hdUrl = hdUrl.replace(
+    /\._[A-Z]{2,}_(?:SL|SX|SY|SS|UL|US|CR|QL|AA|SR)[\d,]+_/gi,
+    "._AC_SL2560_"
+  );
+  
+  // If no sizing token was found, try inserting before the file extension
+  if (hdUrl === imageUrl) {
+    hdUrl = hdUrl.replace(
+      /\._([A-Za-z0-9_]+)_\.(jpg|png|webp)/gi,
+      "._AC_SL2560_.$2"
+    );
+  }
+  
+  return hdUrl;
+}
+
+// Extract only the main product image (first large image) - prioritize HD
 function extractMainProductImage(markdown: string, url: string): string | null {
   const lowerUrl = url.toLowerCase();
   
   if (lowerUrl.includes("amazon")) {
-    const patterns = [
-      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._AC_SL1500_[^"'\s\)]*\.(jpg|png|webp)/gi,
-      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._SL1500_[^"'\s\)]*\.(jpg|png|webp)/gi,
-      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+\._AC_SL1200_[^"'\s\)]*\.(jpg|png|webp)/gi,
-      /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+[^"'\s\)]*\.(jpg|png|webp)/gi,
-    ];
+    // Collect all Amazon image URLs
+    const allAmazonImages: string[] = [];
+    const amazonPattern = /https?:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+[^"'\s\)]*\.(jpg|png|webp)/gi;
+    let match;
+    while ((match = amazonPattern.exec(markdown)) !== null) {
+      allAmazonImages.push(match[0]);
+    }
     
-    for (const pattern of patterns) {
-      const matches = markdown.match(pattern);
-      if (matches && matches.length > 0) {
-        return matches[0];
+    if (allAmazonImages.length > 0) {
+      // Prioritize: find the largest resolution image first
+      const hdPatterns = [
+        /_AC_SL2560_/i,
+        /_AC_SL2000_/i, 
+        /_AC_SL1500_/i,
+        /_SL1500_/i,
+        /_AC_SL1200_/i,
+        /_AC_SL1000_/i,
+      ];
+      
+      for (const hdPattern of hdPatterns) {
+        const hdImage = allAmazonImages.find(img => hdPattern.test(img));
+        if (hdImage) {
+          console.log("Found HD Amazon image:", hdImage.substring(0, 80));
+          return upgradeAmazonImageToHD(hdImage);
+        }
       }
+      
+      // No HD image found in markdown, upgrade the first image to HD
+      const firstImage = allAmazonImages[0];
+      const upgraded = upgradeAmazonImageToHD(firstImage);
+      console.log("Upgraded Amazon image to HD:", upgraded.substring(0, 80));
+      return upgraded;
     }
   }
   
